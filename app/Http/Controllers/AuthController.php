@@ -14,34 +14,29 @@ class AuthController extends Controller
 {
     public function login(Request $request)
     {
-        // Validação das credenciais
         $credentials = $request->only('email', 'password');
 
         try {
-            // Tentativa de autenticar o usuário e gerar o token JWT
             if (!$token = JWTAuth::attempt($credentials)) {
                 return response()->json(['error' => 'Credenciais inválidas'], 401);
             }
 
-            // Após o login, obtenha o usuário atual
             $user = JWTAuth::user();
-            $role = $user->getRoleNames()->first(); // Obtenha o papel do usuário
-            $permissions = $user->getAllPermissions()->pluck('name'); // Obtenha as permissões do usuário
+            $role = $user->getRoleNames()->first(); 
+            $permissions = $user->getAllPermissions()->pluck('name'); 
 
             return response()->json([
-                'token' => $token, // O token JWT gerado
-                'role' => $role,    // O papel do usuário
-                'permissions' => $permissions, // As permissões do usuário
+                'token' => $token, 
+                'role' => $role,   
+                'permissions' => $permissions, 
             ]);
         } catch (JWTException $e) {
             return response()->json(['error' => 'Erro ao gerar o token'], 500);
         }
     }
 
-    // Método para registrar um novo usuário
     public function register(Request $request)
     {
-        // Validação dos dados do usuário
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
@@ -52,25 +47,21 @@ class AuthController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        // Criação do usuário
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password), // Criptografando a senha
         ]);
 
-        // Retornando o usuário criado (sem a senha) e uma mensagem de sucesso
         return response()->json([
             'message' => 'Usuário registrado com sucesso!',
             'user' => $user,
         ], 201);
     }
 
-    // Método para obter todos os usuários
-// Método para obter todos os usuários com seus papéis
+
 public function getUsers()
 {
-    // Carrega os usuários com a relação de papéis
     $users = User::with('roles')->get();
 
     return response()->json([
@@ -112,10 +103,8 @@ public function updateUser(Request $request, $id)
         $user->email = $request->email;
     }
 
-    // Salvar as alterações
     $user->save();
 
-    // Retornar a resposta com os dados atualizados
     return response()->json([
         'message' => 'Usuário atualizado com sucesso!',
         'user' => [
@@ -142,7 +131,7 @@ public function deleteUser($id)
     public function logout(Request $request)
     {
         try {
-            JWTAuth::invalidate(JWTAuth::getToken()); // Invalidando o token atual
+            JWTAuth::invalidate(JWTAuth::getToken()); 
             return response()->json(['message' => 'Logout bem-sucedido.']);
         } catch (JWTException $e) {
             return response()->json(['error' => 'Falha ao tentar fazer logout'], 500);
